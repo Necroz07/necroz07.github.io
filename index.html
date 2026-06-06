@@ -56,6 +56,15 @@
             font-size: 0.75rem; line-height: 1.1;
         }
         #ascii-animation:hover { color: #ffffff; opacity: 1; cursor: crosshair; }
+        @media (max-width: 767px) {
+            #flash-overlay span {
+                font-size: 1.25rem !important;
+                letter-spacing: 0.25rem !important;
+                line-height: 1.5 !important;
+                padding: 0 1rem;
+                display: block;
+            }
+        }
     </style>
 </head>
 <body class="h-[100dvh] w-full overflow-hidden text-sm sm:text-base flex flex-row">
