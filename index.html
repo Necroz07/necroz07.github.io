@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        body {
+            background-color: #000000;
+            background-image: 
+                linear-gradient(#111 1px, transparent 1px),
+                linear-gradient(90deg, #111 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        #flash-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #000000;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; opacity: 0; pointer-events: none;
+            transition: opacity 0.1s ease-out;
+        }
+        #flash-overlay::before {
+            content: ""; position: absolute;
+            top: 20px; left: 20px; right: 20px; bottom: 20px;
+            border: 4px solid #8b0000; pointer-events: none;
+        }
+        #flash-overlay.active { opacity: 1; }
+        #flash-overlay span {
+            color: #ffffff;
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem; font-weight: bold; letter-spacing: 0.5rem; text-align: center;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in { animation: fadeIn 0.1s ease-in; }
+        
+        .sidebar-title {
+            font-family: 'Playfair Display', serif;
+            color: #ffffff; letter-spacing: 0.1em;
+        }
+        
+        #ascii-animation {
+            overflow: hidden;
+            color: #8b0000; opacity: 0.5;
+            font-size: 0.75rem; line-height: 1.1;
+        }
+        #ascii-animation:hover { color: #ffffff; opacity: 1; cursor: crosshair; }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden text-sm sm:text-base flex flex-row">
+    
+    <div id="flash-overlay"><span>SYSTEM</span></div>
+
+    <!-- Main Content -->
+    <div class="w-full md:w-3/4 h-full flex flex-col border-r border-[#222]">
+        <div id="terminal-output" class="flex-1 overflow-y-auto p-4 sm:p-6 no-scrollbar flex flex-col gap-2"></div>
+
+        <div class="p-4 sm:p-6 flex flex-col gap-4 shrink-0 bg-black/90 backdrop-blur-sm border-t border-[#111]">
+            <div class="flex items-center gap-2">
+                <span class="text-green-500 font-bold whitespace-nowrap">guest@necroz07:~$</span>
+                <input type="text" id="terminal-input" class="flex-1 bg-transparent outline-none border-none text-[#e2e8f0] caret-white" autocomplete="off" spellcheck="false">
+            </div>
+
+            <div class="flex flex-wrap gap-2 text-xs sm:text-sm text-[#e2e8f0]">
+                <button class="command-chip border border-neutral-800 px-3 py-1.5 rounded hover:bg-neutral-900 hover:text-white transition-colors" data-command="--cases">[ Projects // --cases ]</button>
+                <button class="command-chip border border-neutral-800 px-3 py-1.5 rounded hover:bg-neutral-900 hover:text-white transition-colors" data-command="--manifest">[ Resume // --manifest ]</button>
+                <button class="command-chip border border-neutral-800 px-3 py-1.5 rounded hover:bg-neutral-900 hover:text-white transition-colors" data-command="--contact">[ Comm Link // --contact ]</button>
+                <button class="command-chip border border-neutral-800 px-3 py-1.5 rounded hover:bg-neutral-900 hover:text-white transition-colors" data-command="--clear">[ Reset // --clear ]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="w-1/4 h-full hidden md:flex flex-col p-6 bg-black/40 backdrop-blur-sm relative select-none">
+        <div class="sidebar-title text-base font-bold mb-4 border-b border-neutral-800 pb-2">[ 監 視 ] STATUS: ACTIVE</div>
+        <div id="ascii-animation" class="flex-1 h-full flex flex-col font-mono"></div>
+    </div>
+
+    <script>
+        const outputArea = document.getElementById('terminal-output');
+        const inputField = document.getElementById('terminal-input');
+        const chips = document.querySelectorAll('.command-chip');
+        const flashOverlay = document.getElementById('flash-overlay');
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+        function printToOutput(text, isEcho = false, useFade = false) {
+            const line = document.createElement('div');
+            if (isEcho) {
+                line.innerHTML = `<span class="text-green-500 font-bold">guest@necroz07:~$</span> <span class="text-[#e2e8f0]">${text}</span>`;
+            } else {
+                line.style.whiteSpace = 'pre-wrap';
+                line.innerHTML = text; 
+                if (useFade) line.classList.add('fade-in');
+            }
+            outputArea.appendChild(line);
+            outputArea.scrollTop = outputArea.scrollHeight;
+            return line;
+        }
+
+        function processCommand(cmd) {
+            const trimmedCmd = cmd.trim();
+            if (trimmedCmd === '') return;
+            
+            if (trimmedCmd === '--clear') { 
+                outputArea.innerHTML = ''; 
+                const asciiArt = `<span class="text-green-500"> _   _  _____  ____  ____   ___  ____  \n| \\ | || ____|/ ___||  _ \\ / _ \\|__  | \n|  \\| ||  _| | |    | |_) | | | | / /  \n| |\\  || |___| |___ |  _ <| |_| |/ /_  \n|_| \\_||_____|\\____||_| \\_\\\\___//____| \n</span>`;
+                printToOutput(asciiArt, false, false);
+                return; 
+            }
+
+            printToOutput(trimmedCmd, true);
+
+            let response = '';
+            let isValid = true;
+            let flashText = '';
+
+            switch (trimmedCmd.toLowerCase()) {
+                case 'help':
+                    response = `<span class="text-neutral-400">Available commands:</span>\n<span class="text-red-500">--cases</span>    : View Portfolio & Project Files\n<span class="text-red-500">--manifest</span> : Access Resume & Credentials\n<span class="text-red-500">--contact</span>  : Initialize Communications\n<span class="text-red-500">--clear</span>    : Purge Terminal Output`;
+                    flashText = '[ 案 内 ] SYSTEM';
+                    break;
+                case '--cases':
+                    response = `<span class="text-red-500">[1] Visual Sonar Representation:</span> Pygame physics simulation. <a href="#" onclick="processCommand('view 1'); return false;" class="text-neutral-500 hover:text-white underline cursor-pointer">[>> READ FILE <<]</a>\n` + 
+                               `<span class="text-red-500">[2] OpenCV Smile Detector:</span> Real-time MediaPipe CV pipeline. <a href="#" onclick="processCommand('view 2'); return false;" class="text-neutral-500 hover:text-white underline cursor-pointer">[>> READ FILE <<]</a>\n` +
+                               `<span class="text-red-500">[3] DaayaMap:</span> Full-stack NGO web platform. <a href="#" onclick="processCommand('view 3'); return false;" class="text-neutral-500 hover:text-white underline cursor-pointer">[>> READ FILE <<]</a>\n` +
+                               `<span class="text-neutral-400">Type 'view 1', 'view 2', 'view 3', or click the links above for details.</span>`;
+                    flashText = '[ 異 常 ] ABERRATION';
+                    break;
+                case 'view 1':
+                    response = `<span class="text-red-500">--- CASE 1: VISUAL SONAR REPRESENTATION ---</span>\n` +
+                               `TECH STACK : Python, Pygame\n` +
+                               `DETAILS    : Real-time sonar simulation demonstrating wave propagation, echo detection, and time-of-flight distance calculation.\n` +
+                               `LINKS      : <a href="https://github.com/Necroz07/Visual-Sonar-Representation" target="_blank" class="underline text-red-400 hover:text-white">GitHub Repo</a> | <a href="https://www.youtube.com/watch?v=UHLWVBOWFMs" target="_blank" class="underline text-red-400 hover:text-white">Demo Video</a>`;
+                    flashText = '[ 展 開 ] READ';
+                    break;
+                case 'view 2':
+                    response = `<span class="text-red-500">--- CASE 2: OPENCV SMILE DETECTOR ---</span>\n` +
+                               `TECH STACK : Python, OpenCV, MediaPipe, NumPy\n` +
+                               `DETAILS    : Real-time webcam-based visual and audio effect application utilizing facial landmark detection and synchronized audio triggers.\n` +
+                               `LINKS      : <a href="https://github.com/Necroz07/sigma-phonk-edit-generator" target="_blank" class="underline text-red-400 hover:text-white">GitHub Repo</a> | <a href="https://youtu.be/Qt5w3KhtXPM" target="_blank" class="underline text-red-400 hover:text-white">Demo Video</a>`;
+                    flashText = '[ 展 開 ] READ';
+                    break;
+                case 'view 3':
+                    response = `<span class="text-red-500">--- CASE 3: DAAYAMAP ---</span>\n` +
+                               `TECH STACK : Python, Flask, Firebase Firestore, HTML/CSS\n` +
+                               `DETAILS    : Web-based map platform connecting NGO volunteers to event hosts. Features live NoSQL DB integration, user authentication, and map-based listings.\n` +
+                               `LINKS      : <a href="https://github.com/Necroz07/daayamap" target="_blank" class="underline text-red-400 hover:text-white">GitHub Repo</a> | <a href="https://youtu.be/U90coBMrElw" target="_blank" class="underline text-red-400 hover:text-white">Demo Video</a>`;
+                    flashText = '[ 展 開 ] READ';
+                    break;
+                case '--manifest':
+                    response = `<span class="text-neutral-400">--- MANIFEST ENGINE LOADED ---</span>\n` +
+                               `IDENTITY : Shrey "Necroz" Shah\n` +
+                               `ROLE     : Python Software Engineer | Backend & Systems\n` +
+                               `CORE_OS  : Python, OpenCV, Flask, Firebase, Pygame\n` +
+                               `STATUS   : Active`;
+                    flashText = '[ 記 録 ] MANIFEST';
+                    break;
+                case '--contact':
+                    response = `GitHub   : <a href="https://github.com/Necroz07" target="_blank" class="underline text-red-400 hover:text-white">github.com/Necroz07</a>\n` +
+                               `LinkedIn : <a href="https://linkedin.com/in/necroz" target="_blank" class="underline text-red-400 hover:text-white">linkedin.com/in/necroz</a>\n` +
+                               `Email    : errdpmt@gmail.com`;
+                    flashText = '[ 通 信 ] CONTACT';
+                    break;
+                case 'sudo':
+                    response = `<span class="text-red-500">ERROR:</span> Nice try. This incident will be reported to the Aberration task force.`;
+                    flashText = '[ 拒 否 ] DENIED';
+                    break;
+                case 'whoami':
+                    response = `You are an unverified guest entity navigating the Necroz domain.`;
+                    flashText = '[ 疑 問 ] IDENTITY';
+                    break;
+                case 'ls':
+                    response = `cases/  manifest/  contact/  .hidden_lore/`;
+                    isValid = false; 
+                    break;
+                case '--diagnostics':
+                    const time = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute:'2-digit' });
+                    response = `NODE       : Vadodara_01\n` +
+                               `LOCAL TIME : ${time} (IST)\n` +
+                               `PROCESS    : Architecting Python & CV systems\n` +
+                               `STATUS     : Active. System Nominal.`;
+                    flashText = '[ 診 断 ] DIAGNOSTICS';
+                    break;
+                case 'play toji':
+                    response = `<span class="text-red-500">--- INITIATING COMBAT PROTOCOL ---</span>\nLoading Toji Shooter sequence... <a href="https://scratch.mit.edu/projects/1189157095" target="_blank" class="underline text-red-400 hover:text-white">[>> CLICK HERE TO DEPLOY <<]</a>`;
+                    flashText = '[ 戦 闘 ] COMBAT';
+                    break;
+                default:
+                    isValid = false;
+                    response = `Command not found: ${trimmedCmd}. Type 'help' for directory.`;
+            }
+
+            if (isValid && !prefersReducedMotion.matches) {
+                flashOverlay.querySelector('span').textContent = flashText || '[ 実 行 ] EXECUTE';
+                flashOverlay.classList.add('active');
+                inputField.disabled = true;
+                setTimeout(() => {
+                    flashOverlay.classList.remove('active');
+                    printToOutput(response);
+                    inputField.disabled = false;
+                    inputField.focus();
+                }, 450);
+            } else {
+                printToOutput(response, false, isValid && prefersReducedMotion.matches);
+            }
+        }
+
+        inputField.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { processCommand(this.value); this.value = ''; }
+        });
+
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => { processCommand(chip.getAttribute('data-command')); });
+        });
+
+        async function runBootSequence() {
+            inputField.disabled = true;
+            const asciiArt = `<span class="text-green-500"> _   _  _____  ____  ____   ___  ____  \n| \\ | || ____|/ ___||  _ \\ / _ \\|__  | \n|  \\| ||  _| | |    | |_) | | | | / /  \n| |\\  || |___| |___ |  _ <| |_| |/ /_  \n|_| \\_||_____|\\____||_| \\_\\\\___//____| \n</span>`;
+            printToOutput(asciiArt, false, false);
+            
+            const loadingLine = printToOutput("> System Booting... [ - ]", false, false);
+            const spinners = ['\\', '|', '/', '-'];
+            let spinnerIndex = 0;
+            
+            const interval = setInterval(() => {
+                spinnerIndex = (spinnerIndex + 1) % spinners.length;
+                loadingLine.innerHTML = '> System Booting... [ ' + spinners[spinnerIndex] + ' ]';
+            }, 100);
+
+            await new Promise(r => setTimeout(r, 1500));
+            clearInterval(interval);
+            outputArea.removeChild(loadingLine);
+            printToOutput("<span class='text-neutral-400'>> System initialization complete. Type 'help' to navigate.</span>\n", false, false);
+            inputField.disabled = false;
+            inputField.focus();
+        }
+
+        function startSidebarAnimation() {
+            const container = document.getElementById('ascii-animation');
+            if (!container) return;
+            const chars = '01XYZxyz!@#$%^&*()_+-[];:,.<>';
+            let lines = Array.from({ length: 40 }, () => Array.from({length: 25}, () => Math.random() > 0.4 ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''));
+            
+            let intervalId;
+
+            function render() {
+                lines.shift();
+                lines.push(Array.from({length: 25}, () => Math.random() > 0.4 ? ' ' : chars[Math.floor(Math.random() * chars.length)]).join(''));
+                container.innerHTML = lines.join('<br>');
+            }
+
+            // Start the animation
+            intervalId = setInterval(render, 120);
+
+            // Freeze on hover
+            container.addEventListener('mouseenter', () => {
+                clearInterval(intervalId);
+            });
+
+            // Resume on hover exit
+            container.addEventListener('mouseleave', () => {
+                intervalId = setInterval(render, 120);
+            });
+        }
+
+        window.onload = () => {
+            runBootSequence();
+            if (!prefersReducedMotion.matches) startSidebarAnimation();
+            
+            const asciiAnimElement = document.getElementById('ascii-animation');
+            if(asciiAnimElement) {
+                asciiAnimElement.addEventListener('click', () => {
+                    processCommand('--diagnostics');
+                });
+            }
+        };
+    </script>
+</body>
+</html>
