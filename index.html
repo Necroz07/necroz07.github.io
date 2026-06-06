@@ -58,11 +58,12 @@
         #ascii-animation:hover { color: #ffffff; opacity: 1; cursor: crosshair; }
         @media (max-width: 767px) {
             #flash-overlay span {
-                font-size: 1.25rem !important;
-                letter-spacing: 0.25rem !important;
-                line-height: 1.5 !important;
-                padding: 0 1rem;
+                font-size: 1.5rem !important; /* Slightly larger, more readable */
+                letter-spacing: 0.2rem !important;
+                line-height: 1.75 !important; /* Perfect gauge for legibility */
+                padding: 0 1.5rem;
                 display: block;
+                word-break: break-word; /* Prevents overflow */
             }
         }
     </style>
