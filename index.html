@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Terminal Portfolio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -58,7 +58,7 @@
         #ascii-animation:hover { color: #ffffff; opacity: 1; cursor: crosshair; }
     </style>
 </head>
-<body class="h-screen w-screen overflow-hidden text-sm sm:text-base flex flex-row">
+<body class="h-[100dvh] w-full overflow-hidden text-sm sm:text-base flex flex-row">
     
     <div id="flash-overlay"><span>SYSTEM</span></div>
 
@@ -82,7 +82,7 @@
     </div>
 
     <!-- Sidebar -->
-    <div class="w-full h-24 md:w-1/4 md:h-full flex flex-col p-4 md:p-6 bg-black/40 backdrop-blur-sm relative select-none">
+    <div class="hidden md:flex md:w-1/4 md:h-full flex-col p-4 md:p-6 bg-black/40 backdrop-blur-sm relative select-none">
         <div class="sidebar-title text-base font-bold mb-2 md:mb-4 border-b border-neutral-800 pb-1 md:pb-2">[ 監 視 ] STATUS: ACTIVE</div>
         <div id="ascii-animation" class="flex-1 h-full flex flex-col font-mono"></div>
     </div>
@@ -202,14 +202,13 @@
             }
 
             if (isValid && !prefersReducedMotion.matches) {
+                isProcessing = true;
                 flashOverlay.querySelector('span').textContent = flashText || '[ 実 行 ] EXECUTE';
                 flashOverlay.classList.add('active');
-                inputField.disabled = true;
                 setTimeout(() => {
                     flashOverlay.classList.remove('active');
                     printToOutput(response);
-                    inputField.disabled = false;
-                    inputField.focus();
+                    isProcessing = false;
                 }, 450);
             } else {
                 printToOutput(response, false, isValid && prefersReducedMotion.matches);
@@ -221,11 +220,14 @@
         });
 
         chips.forEach(chip => {
-            chip.addEventListener('click', () => { processCommand(chip.getAttribute('data-command')); });
+            chip.addEventListener('click', () => { 
+                processCommand(chip.getAttribute('data-command')); 
+                inputField.value = ''; 
+            });
         });
 
         async function runBootSequence() {
-            inputField.disabled = true;
+            isProcessing = true;
             const asciiArt = `<span class="text-green-500"> _   _  _____  ____  ____   ___  ____  \n| \\ | || ____|/ ___||  _ \\ / _ \\|__  | \n|  \\| ||  _| | |    | |_) | | | | / /  \n| |\\  || |___| |___ |  _ <| |_| |/ /_  \n|_| \\_||_____|\\____||_| \\_\\\\___//____| \n</span>`;
             printToOutput(asciiArt, false, false);
             
@@ -242,8 +244,7 @@
             clearInterval(interval);
             outputArea.removeChild(loadingLine);
             printToOutput("<span class='text-neutral-400'>> System initialization complete. Type 'help' to navigate.</span>\n", false, false);
-            inputField.disabled = false;
-            inputField.focus();
+            isProcessing = false;
         }
 
         function startSidebarAnimation() {
@@ -283,11 +284,6 @@
                 asciiAnimElement.addEventListener('click', () => {
                     processCommand('--diagnostics');
                 });
-            }
-        };
-    </script>
-</body>
-</html>
             }
         };
     </script>
