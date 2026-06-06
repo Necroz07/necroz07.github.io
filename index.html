@@ -82,8 +82,8 @@
     </div>
 
     <!-- Sidebar -->
-    <div class="w-1/4 h-full hidden md:flex flex-col p-6 bg-black/40 backdrop-blur-sm relative select-none">
-        <div class="sidebar-title text-base font-bold mb-4 border-b border-neutral-800 pb-2">[ 監 視 ] STATUS: ACTIVE</div>
+    <div class="w-full h-24 md:w-1/4 md:h-full flex flex-col p-4 md:p-6 bg-black/40 backdrop-blur-sm relative select-none">
+        <div class="sidebar-title text-base font-bold mb-2 md:mb-4 border-b border-neutral-800 pb-1 md:pb-2">[ 監 視 ] STATUS: ACTIVE</div>
         <div id="ascii-animation" class="flex-1 h-full flex flex-col font-mono"></div>
     </div>
 
@@ -283,6 +283,11 @@
                 asciiAnimElement.addEventListener('click', () => {
                     processCommand('--diagnostics');
                 });
+            }
+        };
+    </script>
+</body>
+</html>
             }
         };
     </script>
